@@ -1,0 +1,10 @@
+* text=auto eol=lf
+*.bsv text eol=lf
+*.v text eol=lf
+*.sv text eol=lf
+*.cpp text eol=lf
+*.hpp text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+Makefile text eol=lf
