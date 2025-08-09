@@ -14,7 +14,7 @@ VLOG_DIR ?= verilog_out
 
 BSV_SRC_DIRS = bsv/types:bsv/link:bsv/fabric:bsv/coherence:bsv/mem_ctrl:bsv/accel:bsv/mgmt:bsv/top:tb
 BSC_PATH_FLAGS = -p +:$(BSV_SRC_DIRS)
-BSC_SIM_FLAGS = -sim -u -aggressive-conditions -check-assert -bdir $(BUILD_DIR) -simdir $(SIM_DIR)
+BSC_SIM_FLAGS = -sim -u -aggressive-conditions -check-assert -Xc++ -O1 -bdir $(BUILD_DIR) -simdir $(SIM_DIR)
 BSC_VLOG_FLAGS = -verilog -u -aggressive-conditions -bdir $(BUILD_DIR) -vdir $(VLOG_DIR)
 
 TESTBENCHES = \
