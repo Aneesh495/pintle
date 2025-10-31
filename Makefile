@@ -3,7 +3,8 @@
 # Master Build, Simulation, and Verification Automation
 # ==============================================================================
 
-BSC ?= $(shell which bsc 2>/dev/null || echo $(HOME)/tools/bsc-2026.07.1-macos-26/bin/bsc)
+BSC_BIN_DIR = $(dir $(BSC))
+export PATH := $(BSC_BIN_DIR):$(PATH)
 PYTHON ?= python3
 CXX ?= clang++
 
