@@ -55,7 +55,8 @@ module mkTbFlitPacker (Empty);
    endrule
 
    rule receive_unpacked if (step == 2);
-      let req <- unpacker.getMemReq();
+      let req_tuple <- unpacker.getMemReq();
+      let req = tpl_1(req_tuple);
       let cred <- unpacker.getCreditReturn();
       $display("[TbFlitPacker] Received Unpacked Request: host_id=%0d, tag=0x%03X, credits=%0d",
                req.host_id, req.tag, cred);

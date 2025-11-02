@@ -17,19 +17,17 @@ import Crc32C::*;
 
 interface FlitUnpacker;
    method Action putFlit(CxlStandardFlit flit);
-   method ActionValue#(CxlMemM2SReq) getMemReq();
-   method ActionValue#(CacheLineData) getWriteData();
+   method ActionValue#(Tuple2#(CxlMemM2SReq, CacheLineData)) getMemReq();
    method ActionValue#(Bit#(8)) getCreditReturn();
    method ActionValue#(Bool) getCrcErrorNotification();
 endinterface
 
 (* synthesize *)
 module mkFlitUnpacker (FlitUnpacker);
-   FIFOF#(CxlStandardFlit) in_fifo        <- mkFIFOF();
-   FIFOF#(CxlMemM2SReq)    mem_req_fifo   <- mkFIFOF();
-   FIFOF#(CacheLineData)   wr_data_fifo   <- mkFIFOF();
-   FIFOF#(Bit#(8))         credit_fifo    <- mkFIFOF();
-   FIFOF#(Bool)            crc_err_fifo   <- mkFIFOF();
+   FIFOF#(CxlStandardFlit)                       in_fifo      <- mkFIFOF();
+   FIFOF#(Tuple2#(CxlMemM2SReq, CacheLineData))  mem_req_fifo <- mkFIFOF();
+   FIFOF#(Bit#(8))                               credit_fifo  <- mkFIFOF();
+   FIFOF#(Bool)                                  crc_err_fifo <- mkFIFOF();
 
    rule unpack_incoming_flit;
       let flit = in_fifo.first();
@@ -68,13 +66,13 @@ module mkFlitUnpacker (FlitUnpacker);
             is_prefetch: (slot0[22] == 1'b1)
          };
 
-         mem_req_fifo.enq(req);
-
          // Extract 512-bit write data payload from Slots 1..4 if write request
+         Bit#(512) payload = 0;
          if (op == MEM_OP_WRITE || op == MEM_OP_WRITE_DATA) begin
-            Bit#(512) payload = {flit.slots[4], flit.slots[3], flit.slots[2], flit.slots[1]};
-            wr_data_fifo.enq(payload);
+            payload = {flit.slots[4], flit.slots[3], flit.slots[2], flit.slots[1]};
          end
+
+         mem_req_fifo.enq(tuple2(req, payload));
       end
    endrule
 
@@ -82,14 +80,9 @@ module mkFlitUnpacker (FlitUnpacker);
       in_fifo.enq(flit);
    endmethod
 
-   method ActionValue#(CxlMemM2SReq) getMemReq();
+   method ActionValue#(Tuple2#(CxlMemM2SReq, CacheLineData)) getMemReq();
       mem_req_fifo.deq();
       return mem_req_fifo.first();
-   endmethod
-
-   method ActionValue#(CacheLineData) getWriteData();
-      wr_data_fifo.deq();
-      return wr_data_fifo.first();
    endmethod
 
    method ActionValue#(Bit#(8)) getCreditReturn();
