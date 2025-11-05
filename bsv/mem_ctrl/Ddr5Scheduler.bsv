@@ -62,6 +62,14 @@ module mkDdr5Scheduler #(Ddr5TimingConfig timings) (Ddr5Scheduler);
                timing_ctrl.recordWrite(b);
                bank_queues[b].deqWrite();
                cmd_out_fifo.enq(tuple3(DDR5_CMD_WRITE, b, req.row));
+               Ddr5MemResponse wr_rsp = Ddr5MemResponse {
+                  channel:         req.channel,
+                  req_id:          req.req_id,
+                  read_data:       0,
+                  ecc_corrected:   False,
+                  ecc_fatal_error: False
+               };
+               rsp_out_fifo.enq(wr_rsp);
                rr_bank_ptr <= b + 1;
             end
          end else if (bstate == BANK_ACTIVE && open_row != req.row) begin
