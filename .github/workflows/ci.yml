@@ -1,0 +1,53 @@
+name: PINTLE Continuous Integration
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  verification:
+    name: Hardware Protocol & Software Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify Character & Style Compliance
+        run: |
+          python3 tools/check_no_em_dash.py
+
+      - name: Run Python Protocol Verification Test Suite
+        run: |
+          python3 tests/test_flit_codec.py
+          python3 tests/test_coherence_races.py
+          python3 tests/test_ddr5_timings.py
+          python3 tests/test_ecc_injection.py
+          python3 tests/test_lz4_accelerator.py
+          python3 tests/test_aes_nist_vectors.py
+          python3 tests/test_multi_host_pbr.py
+          python3 tests/test_end_to_end_pool.py
+
+      - name: Compile and Run C++ Co-Simulation Stress Harness
+        run: |
+          g++ -std=c++17 -O2 -I sim sim/cxl_host_agent.cpp sim/cxl_monitor.cpp sim/dpi_bridge.cpp sim/main_cosim.cpp -o bin/cosim_stress
+          ./bin/cosim_stress
+
+      - name: Run Telemetry Dashboard Verification
+        run: |
+          python3 tools/telemetry_dashboard.py
+
+      - name: Run Trace Replay Benchmark
+        run: |
+          python3 tools/cxl_trace_replay.py
+
+      - name: Line Count & Metrics Audit
+        run: |
+          python3 tools/line_count.py
