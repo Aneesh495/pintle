@@ -3,6 +3,7 @@
 # Master Build, Simulation, and Verification Automation
 # ==============================================================================
 
+BSC ?= $(shell which bsc 2>/dev/null || echo /Users/aneeshkrishna/tools/bsc-2026.07.1-macos-26/bin/bsc)
 BSC_BIN_DIR = $(dir $(BSC))
 export PATH := $(BSC_BIN_DIR):$(PATH)
 PYTHON ?= python3
@@ -65,7 +66,7 @@ test-bsv: dirs $(addprefix $(BIN_DIR)/, $(TESTBENCHES))
 	@echo "======================================================================"
 	@for tb in $(TESTBENCHES); do \
 		echo "--> Executing testbench: $$tb"; \
-		$(BIN_DIR)/$$tb || exit 1; \
+		PATH="$(BSC_BIN_DIR):$$PATH" $(BIN_DIR)/$$tb || exit 1; \
 	done
 	@echo "All Bluesim testbenches PASSED successfully."
 

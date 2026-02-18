@@ -65,6 +65,12 @@ module mkTbDdr5Scheduler (Empty);
       $display("[TbDdr5Scheduler] Issued Command: %0d on Bank %0d, Row 0x%05X", pack(cmd), b, row);
 
       if (cmd == DDR5_CMD_WRITE) begin
+         let wr_rsp <- scheduler.getResponse();
+         $display("[TbDdr5Scheduler] Received Write Completion Ack for req_id 0x%03X", wr_rsp.req_id);
+         if (wr_rsp.req_id != 12'h001) begin
+            $display("[FATAL] Expected write completion ack for 0x001, got 0x%03X", wr_rsp.req_id);
+            $finish(1);
+         end
          // After write command issues, test Page Hit read on same row
          test_step <= 2;
       end
