@@ -35,17 +35,21 @@ TESTBENCHES = \
 	TbPmuCounters \
 	TbPintleTop
 
-.PHONY: all help dirs test test-bsv test-py lint clean sim verilog stats
+COSIM_SRCS = sim/cxl_host_agent.cpp sim/cxl_monitor.cpp sim/dpi_bridge.cpp sim/main_cosim.cpp
+COSIM_BIN = $(BIN_DIR)/cosim_stress
 
-all: dirs test-bsv stats
+.PHONY: all help dirs test test-bsv test-py cosim lint clean sim verilog stats
+
+all: dirs test-bsv cosim test-py stats
 
 help:
 	@echo "PINTLE: Compute Express Link (CXL 3.1) Coherent Memory Pool Controller"
 	@echo "Targets:"
-	@echo "  all        : Run all unit and integration simulations"
+	@echo "  all        : Run all unit, integration, and co-simulations"
 	@echo "  test-bsv   : Compile and execute all Bluesim testbenches"
 	@echo "  test-py    : Run Python protocol verification test suites"
-	@echo "  test       : Run both BSV and Python test suites"
+	@echo "  cosim      : Build and run C++ multi-agent co-simulation stress suite"
+	@echo "  test       : Run BSV, cosim, and Python test suites"
 	@echo "  verilog    : Synthesize BSV modules into synthesizable Verilog"
 	@echo "  lint       : Check dash compliance and style"
 	@echo "  stats      : Print line count and metrics breakdown"
@@ -70,6 +74,16 @@ test-bsv: dirs $(addprefix $(BIN_DIR)/, $(TESTBENCHES))
 	done
 	@echo "All Bluesim testbenches PASSED successfully."
 
+$(COSIM_BIN): $(COSIM_SRCS) dirs
+	@echo "[CXX] Compiling C++ DPI-C Co-simulation Engine..."
+	@$(CXX) -std=c++17 -O2 -I sim $(COSIM_SRCS) -o $@
+
+cosim: $(COSIM_BIN)
+	@echo "======================================================================"
+	@echo "Running C++ DPI-C Multi-Agent Co-Simulation Stress Test"
+	@echo "======================================================================"
+	@$(COSIM_BIN) 2500
+
 test-py:
 	@echo "======================================================================"
 	@echo "Running Python Protocol & Verification Test Suite"
@@ -80,7 +94,7 @@ test-py:
 	done
 	@echo "All Python verification test suites PASSED."
 
-test: test-bsv test-py
+test: test-bsv cosim test-py
 
 verilog: dirs
 	@echo "======================================================================"
