@@ -37,6 +37,7 @@ jobs:
 
       - name: Compile and Run C++ Co-Simulation Stress Harness
         run: |
+          mkdir -p bin
           g++ -std=c++17 -O2 -I sim sim/cxl_host_agent.cpp sim/cxl_monitor.cpp sim/dpi_bridge.cpp sim/main_cosim.cpp -o bin/cosim_stress
           ./bin/cosim_stress
 
